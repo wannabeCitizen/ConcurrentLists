@@ -4,44 +4,59 @@
 // Lazy List with cleanup
 
 import java.util.concurrent.locks.ReentrantLock;
-import javax.swing.Timer;
+import java.util.concurrent.locks.Lock;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
-public class LazyList {
+public class LazyClean<T> implements Lists<T>{
 
 	private Node head;
+	private Timer timer = new Timer();
+	private TaskClean myClean = new TaskClean();
 
-	public LazyList() {
+	public LazyClean() {
 		head = new Node(Integer.MIN_VALUE);
 		head.next = new Node(Integer.MAX_VALUE);
-		new Timer(500, cleanUp).start();
+		timer.schedule(myClean, .1, .1);
+
+	}
+
+	public void endTime(){
+		timer.cancel();
 	}
 
 	private class Node {
-		Integer item;
+		T item;
 		int key;
 		Node next;
 		private Lock lock;
 		boolean marked;
 
-		public Node(Integer myItem){
+		public Node(T myItem){
 			item = myItem;
 			key = myItem.hashCode();
 			next = null;
-			lock = new ReentrantLock()
+			lock = new ReentrantLock();
 			marked = false;
 		}
 
-		public lock(){
+		public Node(Integer myInt){
+			key = myInt;
+			next = null;
+			lock = new ReentrantLock();
+		}
+
+		public void lock(){
 			lock.lock();
 		}
 
-		public unlock(){
+		public void unlock(){
 			lock.unlock();
 		}
 	}
 
-	public boolean add(Integer item){
+	public boolean add(T item){
 		int key = item.hashCode();
 		while (true){
 			Node pred = head;
@@ -52,7 +67,7 @@ public class LazyList {
 			}
 			pred.lock();
 			try{
-				curr.lock()
+				curr.lock();
 				try{
 					if(validate(pred,curr)) {
 						if(curr.key == key){
@@ -74,7 +89,7 @@ public class LazyList {
 		}
 	}
 
-	public boolean remove(Integer item){
+	public boolean remove(T item){
 		int key = item.hashCode();
 		while (true) {
 			Node pred = head;
@@ -87,7 +102,7 @@ public class LazyList {
 			try{
 				curr.lock();
 				try{
-					if validate(pred, curr){					
+					if (validate(pred, curr)){					
 						if (curr.key != key) {
 							return false;
 						} else {
@@ -104,35 +119,41 @@ public class LazyList {
 		}
 	}
 
-	public boolean contains(Integer item){
+	public boolean contains(T item){
 		int key = item.hashCode();
 		Node curr = head;
 		while (curr.key < key){
 			curr = curr.next;
-		return curr.key == key && !curr.marked;
 		}
+		return curr.key == key && !curr.marked;
+
 	}
 
 	private boolean validate(Node pred, Node curr){
-		return !pred.marked && !curr.marked && pred.next == curr;
+		return pred.next == curr;
 	}
 
-	private void cleanUp(){
-		Node pred = head;
-		Node curr = pred.next;
-		while(curr.key != Integer.MAX_VALUE){
-			pred = curr;
-			curr = curr.next;
-			if (curr.marked == true){
-				try{
-					pred.lock();
-					curr.lock();
-					pred.next = curr.next;
-				} finally {
-					pred.unlock();
-					curr.unlock();
-				}
-			}		
+	
+	public class TaskClean extends TimerTask{
+
+		@Override
+		public void run(){
+			Node pred = head;
+			Node curr = pred.next;
+			while(curr.key != Integer.MAX_VALUE){
+				pred = curr;
+				curr = curr.next;
+				if (curr.marked == true){
+					try{
+						pred.lock();
+						curr.lock();
+						pred.next = curr.next;
+					} finally {
+						pred.unlock();
+						curr.unlock();
+					}
+				}		
+			}
 		}
 	}
 

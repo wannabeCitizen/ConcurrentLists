@@ -4,9 +4,11 @@
 // Lazy List
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
 
 
-public class LazyList {
+
+public class LazyList<T> implements Lists<T>{
 
 	private Node head;
 
@@ -16,30 +18,36 @@ public class LazyList {
 	}
 
 	private class Node {
-		Integer item;
+		T item;
 		int key;
 		Node next;
 		private Lock lock;
 		boolean marked;
 
-		public Node(Integer myItem){
+		public Node(T myItem){
 			item = myItem;
 			key = myItem.hashCode();
 			next = null;
-			lock = new ReentrantLock()
+			lock = new ReentrantLock();
 			marked = false;
 		}
 
-		public lock(){
+		public Node(Integer myInt){
+			key = myInt;
+			next = null;
+			lock = new ReentrantLock();
+		}
+
+		public void lock(){
 			lock.lock();
 		}
 
-		public unlock(){
+		public void unlock(){
 			lock.unlock();
 		}
 	}
 
-	public boolean add(Integer item){
+	public boolean add(T item){
 		int key = item.hashCode();
 		while (true){
 			Node pred = head;
@@ -50,10 +58,10 @@ public class LazyList {
 			}
 			pred.lock();
 			try{
-				curr.lock()
+				curr.lock();
 				try{
-					if(validate(pred,curr)) {
-						if(curr.key == key){
+					if (validate(pred,curr)) {
+						if (curr.key == key){
 							return false;
 						} else {
 							Node node = new Node(item);
@@ -72,7 +80,7 @@ public class LazyList {
 		}
 	}
 
-	public boolean remove(Integer item){
+	public boolean remove(T item){
 		int key = item.hashCode();
 		while (true) {
 			Node pred = head;
@@ -85,7 +93,7 @@ public class LazyList {
 			try{
 				curr.lock();
 				try{
-					if validate(pred, curr){					
+					if (validate(pred, curr)){					
 						if (curr.key != key) {
 							return false;
 						} else {
@@ -103,13 +111,13 @@ public class LazyList {
 		}
 	}
 
-	public boolean contains(Integer item){
+	public boolean contains(T item){
 		int key = item.hashCode();
 		Node curr = head;
 		while (curr.key < key){
 			curr = curr.next;
-		return curr.key == key && !curr.marked;
 		}
+		return curr.key == key && !curr.marked;
 	}
 
 	private boolean validate(Node pred, Node curr){

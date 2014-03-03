@@ -4,40 +4,48 @@
 // Fine Grain List
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
 
 
-public class FineGrain {
+
+public class FineGrain<T> implements Lists<T>{
 
 	private Node head;
 
-	public FineGrain() {
+	public FineGrain(){
 		head = new Node(Integer.MIN_VALUE);
 		head.next = new Node(Integer.MAX_VALUE);
 	}
 
-	private class Node {
-		Integer item;
+	private class Node{
+		T item;
 		int key;
 		Node next;
 		private Lock lock;
 
-		public Node(Integer myItem){
+		public Node(T myItem){
 			item = myItem;
 			key = myItem.hashCode();
 			next = null;
-			lock = new ReentrantLock()
+			lock = new ReentrantLock();
 		}
-		
-		public lock(){
+
+		public Node(Integer myInt){
+			key = myInt;
+			next = null;
+			lock = new ReentrantLock();
+		}
+
+		public void lock(){
 			lock.lock();
 		}
 
-		public unlock(){
+		public void unlock(){
 			lock.unlock();
 		}
 	}
 
-	public boolean add(Integer item){
+	public boolean add(T item){
 		int key = item.hashCode();
 		head.lock();
 		Node pred = head;
@@ -67,7 +75,7 @@ public class FineGrain {
 		}
 	}
 
-	public boolean remove(Integer item){
+	public boolean remove(T item){
 		Node pred = null , curr = null;
 		int key = item.hashCode();
 		head.lock();
@@ -77,7 +85,7 @@ public class FineGrain {
 			curr.lock();
 			try{
 				while (curr.key < key){
-					pred.unlock()
+					pred.unlock();
 					pred = curr;
 					curr = curr.next;
 					curr.lock();
@@ -97,14 +105,14 @@ public class FineGrain {
 		}
 	}
 
-	public boolean contains(Integer item){
+	public boolean contains(T item){
 		Node pred = null, curr = null;
 		int key = item.hashCode();
 		head.lock();
 		try {
 			pred = head;
 			curr = pred.next;
-			curr.lock()
+			curr.lock();
 			try {
 				while (curr.key <= key){
 					pred.unlock();

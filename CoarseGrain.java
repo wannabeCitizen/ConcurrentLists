@@ -3,10 +3,11 @@
 // Homework 2
 // CoarseGrain List
 
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class CoarseGrain {
+public class CoarseGrain<T> implements Lists<T>{
 
 	private Node head;
 	private Lock lock = new ReentrantLock();
@@ -17,26 +18,32 @@ public class CoarseGrain {
 	}
 
 	private class Node {
-		Integer item;
+		T item;
 		int key;
 		Node next;
 
-		public Node(Integer myItem){
+		public Node(T myItem){
 			item = myItem;
 			key = myItem.hashCode();
 			next = null;
 		}
-		
-		public lock(){
+
+		public Node(Integer myInt){
+			key = myInt;
+			next = null;
+			lock = new ReentrantLock();
+		}
+
+		public void lock(){
 			lock.lock();
 		}
 
-		public unlock(){
+		public void unlock(){
 			lock.unlock();
 		}
 	}
 
-	public boolean add(Integer item){
+	public boolean add(T item){
 		Node pred, curr;
 		int key = item.hashCode();
 		lock.lock();
@@ -60,7 +67,7 @@ public class CoarseGrain {
 		}
 	}
 
-	public boolean remove(Integer item){
+	public boolean remove(T item){
 		Node pred, curr;
 		int key = item.hashCode();
 		lock.lock();
@@ -82,7 +89,7 @@ public class CoarseGrain {
 		}
 	}
 
-	public boolean contains(Integer item){
+	public boolean contains(T item){
 		Node pred, curr;
 		int key = item.hashCode();
 		lock.lock();
