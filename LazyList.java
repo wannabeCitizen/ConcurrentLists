@@ -7,16 +7,19 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
 
 
+// Class for Lazy List, which can take any type
 
 public class LazyList<T> implements Lists<T>{
 
 	private Node head;
 
+	//Constructor for List
 	public LazyList() {
 		head = new Node(Integer.MIN_VALUE);
 		head.next = new Node(Integer.MAX_VALUE);
 	}
 
+	// Internal Node class for list
 	private class Node {
 		T item;
 		int key;
@@ -24,6 +27,7 @@ public class LazyList<T> implements Lists<T>{
 		private Lock lock;
 		boolean marked;
 
+		// Node constructor 
 		public Node(T myItem){
 			item = myItem;
 			key = myItem.hashCode();
@@ -32,21 +36,26 @@ public class LazyList<T> implements Lists<T>{
 			marked = false;
 		}
 
+		// Second constructor needed for initialization when Integers 
+		// are fed explicitly 
 		public Node(Integer myInt){
 			key = myInt;
 			next = null;
 			lock = new ReentrantLock();
 		}
 
+		// Simplified locking method
 		public void lock(){
 			lock.lock();
 		}
 
+		// Simplified unlocking method
 		public void unlock(){
 			lock.unlock();
 		}
 	}
 
+	// Add that only locks on nodes being modified
 	public boolean add(T item){
 		int key = item.hashCode();
 		while (true){
@@ -80,6 +89,7 @@ public class LazyList<T> implements Lists<T>{
 		}
 	}
 
+	// Remove that locks only nodes being marked and removed
 	public boolean remove(T item){
 		int key = item.hashCode();
 		while (true) {
@@ -111,6 +121,7 @@ public class LazyList<T> implements Lists<T>{
 		}
 	}
 
+	//Lock-free contains
 	public boolean contains(T item){
 		int key = item.hashCode();
 		Node curr = head;
@@ -120,6 +131,8 @@ public class LazyList<T> implements Lists<T>{
 		return curr.key == key && !curr.marked;
 	}
 
+	// Validates that both you're in the list and that neither of your nodes
+	// are marked so you don't accidentally get taken out of the list.
 	private boolean validate(Node pred, Node curr){
 		return !pred.marked && !curr.marked && pred.next == curr;
 	}

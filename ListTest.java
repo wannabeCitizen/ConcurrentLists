@@ -5,19 +5,19 @@
 
 import java.util.Random;
 
-
+// Test Class
 public class ListTest{
-  private final static int THREADS = 8;
+  private final static int THREADS = 15;
   private final static int TOTAL_ITEMS = 10000;
+  private final static int LIST_LENGTH = 40000;
   private final static int PER_THREAD = TOTAL_ITEMS / THREADS;
   int counter = 0;
 
-  
+  // This actually initializes and runs the threads, and also times the test
   public static void testList(Lists myList) throws Exception {
     Thread[] thread = new Thread[THREADS];
 
 
-    System.out.println("test parallel");
     long time1 = System.currentTimeMillis();
 
       for (int i = 0; i < THREADS; i++) {
@@ -34,9 +34,10 @@ public class ListTest{
 
     long time2 = System.currentTimeMillis();
     long totalTime = time2-time1;
-    System.out.println("The above test ran in: " + totalTime);
+    System.out.println("The above test ran in: " + totalTime + "ms \n");
   }
   
+  // Class for threads
   static class MyThread extends Thread {
     private Lists testList;
 
@@ -44,23 +45,25 @@ public class ListTest{
       testList = myList; 
     }
 
+    // The task each thread runs, which contains randomly selected adds and removes
+    // In this case the probabilities are even, but I changed them around in testing.
     public void run() {
       Random numberGen = new Random();
-      int methodTest;
+      float methodTest;
       int testNum;
 
       for (int i = 0; i < PER_THREAD; i++) {
-        methodTest = numberGen.nextInt(3);
+        methodTest = numberGen.nextFloat();
 
-        if (methodTest == 0){
+        if (methodTest <= .33){
           testNum = numberGen.nextInt(TOTAL_ITEMS);
           testList.remove(testNum);
 
-        } else if (methodTest == 1){
+        } else if (methodTest > .33 && methodTest <= .66){
           testNum = numberGen.nextInt(TOTAL_ITEMS);
           testList.add(testNum);
 
-        } else if (methodTest == 2){
+        } else if (methodTest > .66){
           testNum = numberGen.nextInt(TOTAL_ITEMS);
           testList.contains(testNum);
         }
@@ -68,13 +71,13 @@ public class ListTest{
     }
   }
 
-
+  // Main function, which initializes each list and then calls its test
   public static void main(String[] args) throws Exception {
 
     System.out.println("Trying Coarse Grain Lock");
     CoarseGrain cgl = new CoarseGrain();
 
-    for (int i = 0; i < TOTAL_ITEMS; i++){
+    for (int i = 0; i < LIST_LENGTH; i++){
       cgl.add(i);
     }
     testList(cgl);
@@ -82,7 +85,7 @@ public class ListTest{
     System.out.println("Trying Fine Grain Lock");
     FineGrain fgl = new FineGrain();
 
-    for (int i = 0; i < TOTAL_ITEMS; i++){
+    for (int i = 0; i < LIST_LENGTH; i++){
       fgl.add(i);
     }
     testList(fgl);
@@ -90,7 +93,7 @@ public class ListTest{
     System.out.println("Trying Lazy Lock");
     LazyList ll = new LazyList();
 
-    for (int i = 0; i < TOTAL_ITEMS; i++){
+    for (int i = 0; i < LIST_LENGTH; i++){
       ll.add(i);
     }
     testList(ll);
@@ -98,7 +101,7 @@ public class ListTest{
     System.out.println("Trying Lazy Lock with cleanUp");
     LazyClean lc = new LazyClean();
 
-    for (int i = 0; i < TOTAL_ITEMS; i++){
+    for (int i = 0; i < LIST_LENGTH; i++){
       lc.add(i);
     }
     testList(lc);

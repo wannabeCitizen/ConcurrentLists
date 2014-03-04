@@ -7,22 +7,25 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
 
 
-
+// Class for Fine Grain Lock - which can take any type
 public class FineGrain<T> implements Lists<T>{
 
 	private Node head;
 
+	//Constructor for List
 	public FineGrain(){
 		head = new Node(Integer.MIN_VALUE);
 		head.next = new Node(Integer.MAX_VALUE);
 	}
 
+	// Internal Node class for list
 	private class Node{
 		T item;
 		int key;
 		Node next;
 		private Lock lock;
 
+		// Node constructor 
 		public Node(T myItem){
 			item = myItem;
 			key = myItem.hashCode();
@@ -30,21 +33,26 @@ public class FineGrain<T> implements Lists<T>{
 			lock = new ReentrantLock();
 		}
 
+		// Second constructor needed for initialization when Integers 
+		// are fed explicitly 
 		public Node(Integer myInt){
 			key = myInt;
 			next = null;
 			lock = new ReentrantLock();
 		}
 
+		// Simplified locking method
 		public void lock(){
 			lock.lock();
 		}
 
+		// Simplified unlocking method
 		public void unlock(){
 			lock.unlock();
 		}
 	}
 
+	// Add that locks the list hand-over-hand before up to add point
 	public boolean add(T item){
 		int key = item.hashCode();
 		head.lock();
@@ -75,6 +83,7 @@ public class FineGrain<T> implements Lists<T>{
 		}
 	}
 
+	// Remove that locks the list hand-over-hand before up to removal point
 	public boolean remove(T item){
 		Node pred = null , curr = null;
 		int key = item.hashCode();
@@ -105,6 +114,7 @@ public class FineGrain<T> implements Lists<T>{
 		}
 	}
 
+	// Contains that locks the list hand-over-hand until node is found (or not)
 	public boolean contains(T item){
 		Node pred = null, curr = null;
 		int key = item.hashCode();
